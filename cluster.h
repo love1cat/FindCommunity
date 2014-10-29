@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   cluster.h
  * Author: andy
  *
@@ -16,13 +16,17 @@ typedef boost::shared_ptr<Cluster> ClusterPtr;
 
 class Cluster{
 public:
-    Cluster Merge(const Cluster& cls2);
-    void Print();
-    inline void Insert(int x) {ids_.insert(x);}
-    inline int GetSize() const{return ids_.size();}
-    inline const std::set<int>& GetIDs() const{return ids_;}
+  Cluster() {id_ = ++id_count;}
+  Cluster Merge(const Cluster& cls2);
+  void Print();
+  inline void Insert(int x) {ids_.insert(x);}
+  inline int GetSize() const{return ids_.size();}
+  inline const std::set<int>& GetIDs() const{return ids_;}
+  inline int id() {return id_;}
 private:
-    std::set<int> ids_;   
+  int id_;
+  static int id_count;
+  std::set<int> ids_;
 };
 
 #endif	/* CLUSTER_H */

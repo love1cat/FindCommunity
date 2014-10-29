@@ -151,12 +151,16 @@ Input::Input(bool is_walker_graph)
     }
   }
   
+  fclose(fp);
+  
+  std::cout << "Done reading file..." <<std::endl;
+  
   // ID validity check -- IDs must be 0-indexed
   std::cout << "Max ID: " << maxid << ", Min ID: " << minid << ", idcount: "<< idcount << std::endl;
   //assert(maxid == idcount - 1 && idcount > 0);
   assert(minid == 0 && idcount > 0);
   
-  n_ = maxid - 1;
+  n_ = maxid + 1;
   // Go over hash table and obtain node neighbor,
   // miu and sigma
   
@@ -171,6 +175,7 @@ Input::Input(bool is_walker_graph)
   }
   
   // Compute mius
+  std::cout << "Computing MIUs..." <<std::endl;
   for(Weight_t::const_iterator it = w.begin(); it != w.end(); ++it) {
     const Pair &p = it->first;
     int weight = it->second;
@@ -183,6 +188,7 @@ Input::Input(bool is_walker_graph)
   
   // Compute sigmas
   // First step, compute partial value from all neighbors
+  std::cout << "Computing Sigmas, first part..." <<std::endl;
   for(Weight_t::const_iterator it = w.begin(); it != w.end(); ++it) {
     const Pair &p = it->first;
     int weight = it->second;
@@ -194,7 +200,9 @@ Input::Input(bool is_walker_graph)
   }
   
   // Second step, compute partial value from all non-neighbors
+  std::cout << "Computing Sigmas, second part..." <<std::endl;
   for (int i = 0; i < n_; ++i) {
+    std::cout << "i = " << i <<std::endl;
     double &miu = ns[i].miu;
     if (miu == 0.0) continue;
     for (int j = 0; j < n_ - ns[i].nb.size(); ++j) {
@@ -202,7 +210,7 @@ Input::Input(bool is_walker_graph)
     }
   }
   
-  fclose(fp);
+  std::cout << "Done processing input..." <<std::endl;
 }
 
 //Input::Input(bool is_walker_graph = true)
