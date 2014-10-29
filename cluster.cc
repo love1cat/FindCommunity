@@ -8,7 +8,14 @@ Cluster Cluster::Merge(const Cluster& cls2){
     return *this;
 }
 
-void Cluster::Print(){
+void Cluster::WriteToFile(FILE *fp) const {
+  for(std::set<int>::iterator it=ids_.begin();it!=ids_.end();++it){
+    fprintf(fp, "%d ", (*it));
+  }
+  fprintf(fp, "\n");
+}
+
+void Cluster::Print() const{
     printf("****************\n");
     printf("Cluster content:\n");
     std::set<int>::iterator it;

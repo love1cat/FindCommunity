@@ -18,7 +18,8 @@ class Cluster{
 public:
   Cluster() {id_ = ++id_count;}
   Cluster Merge(const Cluster& cls2);
-  void Print();
+  void Print() const;
+  void WriteToFile(FILE *fp) const;
   inline void Insert(int x) {ids_.insert(x);}
   inline int GetSize() const{return ids_.size();}
   inline const std::set<int>& GetIDs() const{return ids_;}

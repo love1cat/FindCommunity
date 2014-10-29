@@ -3,6 +3,10 @@
 #include "cluster.h"
 #include "findcluster.h"
 
+namespace {
+  const std::string CLUSTER_FILE = "clusters.txt";
+}
+
 void FindCluster::run(const int THRESHOLD) const {
   std::cout << "Starting finding community..." << std::endl;
   int n = ip_->GetNodeCount();
@@ -47,10 +51,14 @@ void FindCluster::run(const int THRESHOLD) const {
   }
   
   // print clusters
-  std::cout << "Printing community..." << std::endl;
+  std::cout << "Printing and saving community..." << std::endl;
+  FILE *fp = fopen(CLUSTER_FILE.c_str(), "w");
+  assert(fp && "Open cluser file failed.");
   std::set<ClusterPtr>::iterator it;
   for(it=clset.begin();it!=clset.end();++it){
     (*it)->Print();
+    (*it)->WriteToFile(fp);
   }
+  fclose(fp);
   std::cout << "Done finding community..." << std::endl;
 }
