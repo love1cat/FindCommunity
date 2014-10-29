@@ -193,7 +193,6 @@ Input::Input(bool is_walker_graph)
     const Pair &p = it->first;
     int weight = it->second;
     int id1 = p.first;
-    int id2 = p.second;
     // IDs must be 0-indexed
     double miu = ns[id1].miu;
     ns[id1].sigma += (double)(weight - miu) / (double)n_ * (double)(weight - miu);
@@ -202,12 +201,10 @@ Input::Input(bool is_walker_graph)
   // Second step, compute partial value from all non-neighbors
   std::cout << "Computing Sigmas, second part..." <<std::endl;
   for (int i = 0; i < n_; ++i) {
-    std::cout << "i = " << i <<std::endl;
+//    std::cout << "i = " << i <<std::endl;
     double &miu = ns[i].miu;
     if (miu == 0.0) continue;
-    for (int j = 0; j < n_ - ns[i].nb.size(); ++j) {
-      ns[i].sigma += miu / (double)n_ * miu;
-    }
+    ns[i].sigma += miu / (double)n_ * miu * (n_ - ns[i].nb.size());
   }
   
   std::cout << "Done processing input..." <<std::endl;
