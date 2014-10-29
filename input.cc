@@ -98,6 +98,7 @@ Input::Input(bool is_walker_graph)
   ID_t ids;
   unsigned int idcount = 0;
   unsigned int maxid = 0;
+  unsigned int minid = std::numeric_limits<unsigned int>::max();
 
   while (fgets(line, MAXN, fp) != NULL) {
     if (is_comment(line)) {
@@ -136,22 +137,34 @@ Input::Input(bool is_walker_graph)
     if (id1 > maxid) {
       maxid = id1;
     }
+
+    if (id1 < minid) {
+      minid = id1;
+    }
     
     if (id2 > maxid) {
       maxid = id2;
     }
+
+    if (id2 < minid) {
+      minid = id2;
+    }
   }
   
   // ID validity check -- IDs must be 0-indexed
-  assert(maxid == idcount - 1 && idcount > 0);
+  std::cout << "Max ID: " << maxid << ", Min ID: " << minid << ", idcount: "<< idcount << std::endl;
+  //assert(maxid == idcount - 1 && idcount > 0);
+  assert(minid == 0 && idcount > 0);
   
-  n_ = idcount;
+  n_ = maxid - 1;
   // Go over hash table and obtain node neighbor,
   // miu and sigma
   
+  
+
   // Init node vector
-  ns.resize(idcount);
-  for (int i = 0; i < idcount; ++i) {
+  ns.resize(n_);
+  for (int i = 0; i < n_; ++i) {
     ns[i].miu = 0.0;
     ns[i].sigma = 0.0;
     ns[i].nb.clear();
@@ -164,7 +177,7 @@ Input::Input(bool is_walker_graph)
     int id1 = p.first;
     int id2 = p.second;
     // IDs must be 0-indexed
-    ns[id1].miu += (double)weight / (double)idcount;
+    ns[id1].miu += (double)weight / (double)n_;
     ns[id1].nb.insert(id2);
   }
   
@@ -177,15 +190,15 @@ Input::Input(bool is_walker_graph)
     int id2 = p.second;
     // IDs must be 0-indexed
     double miu = ns[id1].miu;
-    ns[id1].sigma += (double)(weight - miu) / (double)idcount * (double)(weight - miu);
+    ns[id1].sigma += (double)(weight - miu) / (double)n_ * (double)(weight - miu);
   }
   
   // Second step, compute partial value from all non-neighbors
-  for (int i = 0; i < idcount; ++i) {
+  for (int i = 0; i < n_; ++i) {
     double &miu = ns[i].miu;
     if (miu == 0.0) continue;
-    for (int j = 0; j < idcount - ns[i].nb.size(); ++j) {
-      ns[i].sigma += miu / (double)idcount * miu;
+    for (int j = 0; j < n_ - ns[i].nb.size(); ++j) {
+      ns[i].sigma += miu / (double)n_ * miu;
     }
   }
   
