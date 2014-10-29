@@ -50,7 +50,7 @@ double get_weight(int x1, int x2) {
   return weight;
 }
 
-typedef boost::unordered_map<Pair, int> Similarity_t;
+typedef boost::unordered_map<Pair, double> Similarity_t;
 Similarity_t sim_cache;
 unsigned long long CACHE_CAPACITY = 500000000;
 }
@@ -91,9 +91,11 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
     ret += (weight1 - miu1) * (weight2 - miu2) / divid;
   }
   
-  if (sim_cache.size() <= CACHE_CAPACITY) {
-    sim_cache.insert(Similarity_t::value_type(std::make_pair(x1, x2), ret));
+  if (sim_cache.size() >= CACHE_CAPACITY) {
+    sim_cache.erase(sim_cache.begin());
   }
+  
+  sim_cache.insert(Similarity_t::value_type(std::make_pair(x1, x2), ret));
 
   return ret;
 }
