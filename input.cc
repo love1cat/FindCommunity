@@ -9,9 +9,6 @@
 #include "input.h"
 #include "cluster.h"
 
-
-#define DEBUG
-
 // if using orginal graph, comment out unify part below, see comments.
 namespace {
 
@@ -53,6 +50,9 @@ double get_weight(int x1, int x2) {
   return weight;
 }
 
+typedef boost::unordered_map<Pair, int> Similarity_t;
+Similarity_t sim_cache;
+unsigned long long CACHE_CAPACITY = 500000000;
 }
 
 Input* Input::inp_ptr_ = NULL;
@@ -65,8 +65,17 @@ Input* Input::inst(bool is_walker_graph)
   return inp_ptr_;
 }
 
+bool Input::IsIsolatedNode(int x1) const {
+  return ns[x1].nb.empty();
+}
+
 double Input::GetPearsonSimilarity(int x1, int x2) const
 {
+  Similarity_t::const_iterator it = sim_cache.find(std::make_pair(x1, x2));
+  if (it != sim_cache.end()) {
+    return it->second;
+  }
+  
   double sigma1 = ns[x1].sigma;
   double sigma2 = ns[x2].sigma;
   if (sigma1 == 0 || sigma2 == 0) return std::numeric_limits<double>::min();
@@ -80,6 +89,10 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
     double weight1 = get_weight(x1, i);
     double weight2 = get_weight(x2, i);
     ret += (weight1 - miu1) * (weight2 - miu2) / divid;
+  }
+  
+  if (sim_cache.size() <= CACHE_CAPACITY) {
+    sim_cache.insert(Similarity_t::value_type(std::make_pair(x1, x2), ret));
   }
 
   return ret;

@@ -17,6 +17,8 @@ public:
   double ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const;
   static Input* inst(bool is_walker_graph = true);
   
+  bool IsIsolatedNode(int x1) const;
+  
   inline double GetNodeCount() {
   	return n_;
   }

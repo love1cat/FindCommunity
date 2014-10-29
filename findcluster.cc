@@ -13,8 +13,10 @@ void FindCluster::run(const int THRESHOLD) const {
   std::set<ClusterPtr> clset;
   for (int i = 0; i < n; ++i) {
     ClusterPtr cp(new Cluster());
-    cp->Insert(i);
-    clset.insert(cp);
+    if (!(ip_->IsIsolatedNode(i))) {
+      cp->Insert(i);
+      clset.insert(cp);
+    }
   }
   
   // begin dividing
