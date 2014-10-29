@@ -3,9 +3,7 @@
 #include "cluster.h"
 #include "findcluster.h"
 
-void FindCluster::run() {
-    const int THRESHOLD = 5;
-
+void FindCluster::run(const int THRESHOLD) const {
     int n = ip_->GetNodeCount();
     std::set<ClusterPtr> clset;
     for (int i = 0; i < n; ++i) {

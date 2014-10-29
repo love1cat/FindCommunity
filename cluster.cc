@@ -11,7 +11,7 @@ void Cluster::Print(){
     printf("Cluster content:\n");
     std::set<int>::iterator it;
     for(it=ids_.begin();it!=ids_.end();++it){
-        printf("%d ", (*it)+1);
+        printf("%d ", (*it));
     }
     printf("\n****************\n\n");
 }

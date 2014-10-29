@@ -12,7 +12,7 @@ class Input;
 class FindCluster{
 public:
     inline FindCluster(Input* ip) : ip_(ip) {}
-    void run();
+    void run(const int threshold) const;
 private:
     Input* ip_;
 };
