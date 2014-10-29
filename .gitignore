@@ -1,5 +1,8 @@
 *.o
 *.o.d
+
+build/*
+
 Xcode/DerivedData/*
 
 Xcode/FindCommunity.xcodeproj/project.xcworkspace/xcuserdata/andy.xcuserdatad/UserInterfaceState.xcuserstate
