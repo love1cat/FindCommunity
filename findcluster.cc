@@ -21,9 +21,10 @@ void FindCluster::run(const int THRESHOLD) const {
   
   // begin dividing
   std::cout << "Threadhold = " << THRESHOLD << std::endl;
+  int count = 0;
   while (clset.size() > THRESHOLD) {
     std::cout << "Size of clusters = " << clset.size() << std::endl;
-    std::cout << "Running new merging round..." << std::endl;
+    std::cout << "Running new merging round " << ++count << std::endl;
     // find two cluster with best similarity (max in pearson similarity case)
     double max = -std::numeric_limits<double>::max();
     std::set<ClusterPtr>::iterator it1, it2, maxit1, maxit2;
