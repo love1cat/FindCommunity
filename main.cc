@@ -11,7 +11,7 @@
 #include "findcluster.h"
 
 namespace {
-  const int THRESHOLD = 10000;
+  const int THRESHOLD = 13477;
 }
 
 int main(int argc, char** argv)
