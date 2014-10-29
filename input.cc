@@ -85,11 +85,20 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   double ret = 0.0;
   double miu1 = ns[x1].miu;
   double miu2 = ns[x2].miu;
-  for (int i = 0; i < n_; ++i) {
-    double weight1 = get_weight(x1, i);
-    double weight2 = get_weight(x2, i);
+  
+  // Neighbor part
+  std::vector<int> nbvec;
+  nbvec.insert(nbvec.end(), ns[x1].nb.begin(), ns[x1].nb.end());
+  nbvec.insert(nbvec.end(), ns[x2].nb.begin(), ns[x2].nb.end());
+  for (int i = 0; i < nbvec.size(); ++i) {
+    int nb = nbvec[i];
+    double weight1 = get_weight(x1, nb);
+    double weight2 = get_weight(x2, nb);
     ret += (weight1 - miu1) * (weight2 - miu2) / divid;
   }
+  
+  // Non-neighbor part
+  ret += miu1 * miu2 * (n_ - nbvec.size()) / divid;
   
   if (sim_cache.size() >= CACHE_CAPACITY) {
     sim_cache.erase(sim_cache.begin());
