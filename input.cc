@@ -12,7 +12,6 @@
 // if using orginal graph, comment out unify part below, see comments.
 namespace {
 
-const std::string INPUT_FILE = "nwdata.txt";
 const char COMMENT_CHAR = '#';
 
 bool is_comment(const char *line)
@@ -57,10 +56,10 @@ unsigned long long CACHE_CAPACITY = 500000000;
 
 Input* Input::inp_ptr_ = NULL;
 
-Input* Input::inst(bool is_walker_graph)
+Input* Input::inst(const char * INPUT_FILE)
 {
   if (!inp_ptr_) {
-    inp_ptr_ = new Input(is_walker_graph);
+    inp_ptr_ = new Input(INPUT_FILE);
   }
   return inp_ptr_;
 }
@@ -109,9 +108,9 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   return ret;
 }
 
-Input::Input(bool is_walker_graph)
+Input::Input(const char * INPUT_FILE)
 {
-  FILE *fp = fopen(INPUT_FILE.c_str(), "r");
+  FILE *fp = fopen(INPUT_FILE, "r");
   if (!fp) {
     throw "Cannot open input file.";
   }
@@ -187,7 +186,6 @@ Input::Input(bool is_walker_graph)
   n_ = maxid + 1;
   // Go over hash table and obtain node neighbor,
   // miu and sigma
-  
   
 
   // Init node vector

@@ -6,3 +6,5 @@ build/*
 Xcode/DerivedData/*
 
 Xcode/FindCommunity.xcodeproj/project.xcworkspace/xcuserdata/andy.xcuserdatad/UserInterfaceState.xcuserstate
+
+Xcode/FindCommunity.xcodeproj/xcuserdata/andy.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist

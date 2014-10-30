@@ -15,7 +15,7 @@ class Cluster;
 class Input {
 public:
   double ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const;
-  static Input* inst(bool is_walker_graph = true);
+  static Input* inst(const char * INPUT_FILE = NULL);
   
   bool IsIsolatedNode(int x1) const;
   
@@ -24,7 +24,7 @@ public:
   }
 	//inline double GetSimilarity(int i, int j){return sim_[i][j];} // for simplicity, not check invalid index
 private:
-  Input(bool is_walker_graph = true);
+  Input(const char * INPUT_FILE);
   Input operator=(const Input&);
   Input(const Input&);
   
