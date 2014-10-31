@@ -22,6 +22,8 @@ public:
   inline double GetNodeCount() {
   	return n_;
   }
+  
+  static void ProcessTopCommunities(const char *TOP_COMMUNITY_FILE, const char *EDGE_FILE, const char *OUTFILE, const char *CONV_TOP_CMTY_FILE);
 	//inline double GetSimilarity(int i, int j){return sim_[i][j];} // for simplicity, not check invalid index
 private:
   Input(const char * INPUT_FILE);

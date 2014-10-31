@@ -1,8 +1,10 @@
 #include <limits>
 #include <cmath>
 #include <queue>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
-#include <boost/scoped_ptr.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 
@@ -23,7 +25,7 @@ bool is_comment(const char *line)
   return *line == COMMENT_CHAR;
 }
 
-const int MAXN = 1000;
+const int MAXN = 1000000;
 
 // Assistant node vector 
 
@@ -110,12 +112,11 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
 
 Input::Input(const char * INPUT_FILE)
 {
-  FILE *fp = fopen(INPUT_FILE, "r");
-  if (!fp) {
+  std::ifstream infile(INPUT_FILE);
+  if (!infile) {
     throw "Cannot open input file.";
   }
 
-  char* line = new char[MAXN];
   // ID hash table for ID check
   typedef boost::unordered_set<int> ID_t;
   ID_t ids;
@@ -123,12 +124,14 @@ Input::Input(const char * INPUT_FILE)
   unsigned int maxid = 0;
   unsigned int minid = std::numeric_limits<unsigned int>::max();
 
-  while (fgets(line, MAXN, fp) != NULL) {
-    if (is_comment(line)) {
+  std::string line;
+  while (std::getline(infile, line)) {
+    if (is_comment(line.c_str())) {
       continue;
     }
+    std::istringstream ssline(line);
     int id1, id2;
-    sscanf(line, "%d%d", &id1, &id2);
+    ssline >> id1 >> id2;
 
     assert(id1 >= 0 && id2 >= 0);
     
@@ -173,8 +176,6 @@ Input::Input(const char * INPUT_FILE)
       minid = id2;
     }
   }
-  
-  fclose(fp);
   
   std::cout << "Done reading file..." <<std::endl;
   
@@ -325,4 +326,74 @@ double Input::ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const
       sum += GetPearsonSimilarity(*it1, *it2);
     }
   return sum / (double) (cls1.GetSize() * cls2.GetSize());
+}
+
+void Input::ProcessTopCommunities(const char *TOP_COMMUNITY_FILE, const char *EDGE_FILE, const char *OUTFILE, const char *CONV_TOP_CMTY_FILE) {
+  std::ifstream infile(TOP_COMMUNITY_FILE);
+  if (!infile) {
+    throw "Cannot open input file.";
+  }
+
+  // ID hash table for ID check
+  typedef boost::unordered_map<int, int> IDMap_t;
+  IDMap_t idmap;
+  unsigned int idcount = 0;
+  
+  std::string line;
+  while (std::getline(infile, line)) {
+    if (is_comment(line.c_str())) {
+      continue;
+    }
+    std::istringstream ssline(line);
+    int id;
+    while (ssline >> id) {
+      std::pair<IDMap_t::iterator, bool> pr = idmap.insert(IDMap_t::value_type(id, idcount));
+      if (pr.second) {
+        ++idcount;
+      }
+    }
+  }
+  
+  std::cout << "ID count = " << idcount << std::endl;
+  
+  infile.close();
+  
+  // Read edge file. Remove edges not in top communities.
+  infile.open(EDGE_FILE);
+  std::ofstream outfile(OUTFILE, std::ios_base::trunc);
+  while (std::getline(infile, line)) {
+    if (is_comment(line.c_str())) {
+      continue;
+    }
+    std::istringstream ssline(line);
+    int id1, id2;
+    ssline >> id1 >> id2;
+    IDMap_t::const_iterator cit1 = idmap.find(id1);
+    IDMap_t::const_iterator cit2 = idmap.find(id2);
+    if (cit1 != idmap.end() && cit2 != idmap.end()) {
+      outfile << cit1->second << "\t" << cit2->second << "\n";
+    }
+  }
+  
+  infile.close();
+  outfile.close();
+  
+  // Convert top communities file to 0-indexed ids
+  infile.open(TOP_COMMUNITY_FILE);
+  outfile.open(CONV_TOP_CMTY_FILE, std::ios_base::trunc);
+  while (std::getline(infile, line)) {
+    if (is_comment(line.c_str())) {
+      continue;
+    }
+    std::istringstream ssline(line);
+    int id;
+    while(ssline >> id) {
+      IDMap_t::const_iterator it = idmap.find(id);
+      if (it == idmap.end()) {
+        throw "Error: id in community is not in idmap.";
+      }
+      outfile << it->second << " ";
+    }
+    outfile << "\n";
+  }
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "Input::ProcessTopCommunities(char const*, char const*, char const*):input.cc">
+         <PersistentStrings>
+            <PersistentString
+               value = "cur+1">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

@@ -28,11 +28,11 @@ void FindCluster::run(const int THRESHOLD) const {
     // find two cluster with best similarity (max in pearson similarity case)
     double max = -std::numeric_limits<double>::max();
     std::set<ClusterPtr>::iterator it1, it2, maxit1, maxit2;
-    for (it1 = clset.begin(); it1 != clset.end(); ++it1)
+    for (it1 = clset.begin(); it1 != clset.end(); ++it1) {
+      Cluster& c1 = *((*it1).get());
+      std::cout << "Computing similarity -- Cluster " << c1.id() << " vs others..." << std::endl;
       for (it2 = clset.begin(); it2 != clset.end(); ++it2) if (it1->get()->id() != it2->get()->id()) {
-        Cluster& c1 = *((*it1).get());
         Cluster& c2 = *((*it2).get());
-        std::cout << "Computing similarity -- Cluster " << c1.id() << " and Cluster " << c2.id() << "..." << std::endl;
         double s = ip_->ComputeSimilarity(c1, c2);
         if (s > max) {
           max = s;
@@ -40,6 +40,7 @@ void FindCluster::run(const int THRESHOLD) const {
           maxit2 = it2;
         }
       }
+    }
     
     // merge the two cluster with max similarity and delete second cluster
     Cluster& c1 = *((*maxit1).get());
