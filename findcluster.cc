@@ -22,7 +22,9 @@ void FindCluster::run(const int THRESHOLD) const {
   // begin dividing
   std::cout << "Threadhold = " << THRESHOLD << std::endl;
   int count = 0;
+  int subcount = 0;
   while (clset.size() > THRESHOLD) {
+    subcount = 0;
     std::cout << "Size of clusters = " << clset.size() << std::endl;
     std::cout << "Running new merging round " << ++count << std::endl;
     // find two cluster with best similarity (max in pearson similarity case)
@@ -30,7 +32,7 @@ void FindCluster::run(const int THRESHOLD) const {
     std::set<ClusterPtr>::iterator it1, it2, maxit1, maxit2;
     for (it1 = clset.begin(); it1 != clset.end(); ++it1) {
       Cluster& c1 = *((*it1).get());
-      std::cout << "Computing similarity -- Cluster " << c1.id() << " vs others..." << std::endl;
+      std::cout << "cluster " << ++subcount << " vs others..." << std::endl;
       for (it2 = clset.begin(); it2 != clset.end(); ++it2) if (it1->get()->id() != it2->get()->id()) {
         Cluster& c2 = *((*it2).get());
         double s = ip_->ComputeSimilarity(c1, c2);

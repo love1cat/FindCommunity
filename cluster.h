@@ -9,6 +9,7 @@
 #define	CLUSTER_H
 
 #include <set>
+#include <boost/unordered_set.hpp>
 #include <boost/shared_ptr.hpp>
 
 class Cluster;
@@ -22,12 +23,12 @@ public:
   void WriteToFile(FILE *fp) const;
   inline void Insert(int x) {ids_.insert(x);}
   inline int GetSize() const{return ids_.size();}
-  inline const std::set<int>& GetIDs() const{return ids_;}
+  inline const boost::unordered_set<int>& GetIDs() const{return ids_;}
   inline int id() {return id_;}
 private:
   int id_;
   static int id_count;
-  std::set<int> ids_;
+  boost::unordered_set<int> ids_;
 };
 
 #endif	/* CLUSTER_H */

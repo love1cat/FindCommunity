@@ -9,7 +9,7 @@ Cluster Cluster::Merge(const Cluster& cls2){
 }
 
 void Cluster::WriteToFile(FILE *fp) const {
-  for(std::set<int>::iterator it=ids_.begin();it!=ids_.end();++it){
+  for(boost::unordered_set<int>::iterator it=ids_.begin();it!=ids_.end();++it){
     fprintf(fp, "%d ", (*it));
   }
   fprintf(fp, "\n");
@@ -18,7 +18,7 @@ void Cluster::WriteToFile(FILE *fp) const {
 void Cluster::Print() const{
     printf("****************\n");
     printf("Cluster content:\n");
-    std::set<int>::iterator it;
+    boost::unordered_set<int>::iterator it;
     for(it=ids_.begin();it!=ids_.end();++it){
         printf("%d ", (*it));
     }
