@@ -253,7 +253,8 @@ namespace {
     for (it1 = cls1.GetIDs().begin(); it1 != cls1.GetIDs().end(); ++it1) {
       for (it2 = cls2.GetIDs().begin(); it2 != cls2.GetIDs().end(); ++it2) {
         Weight_t::const_iterator wit = w.find(Weight_t::key_type(*it1, *it2));
-        if (wit != w.end()) {
+        Weight_t::const_iterator wit2 = w.find(Weight_t::key_type(*it2, *it1));
+        if (wit != w.end() || wit2 != w.end()) {
           return true;
         }
       }
