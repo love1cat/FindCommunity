@@ -32,7 +32,9 @@ void FindCluster::run(const int THRESHOLD) const {
     std::set<ClusterPtr>::iterator it1, it2, maxit1, maxit2;
     for (it1 = clset.begin(); it1 != clset.end(); ++it1) {
       Cluster& c1 = *((*it1).get());
-      std::cout << "cluster " << ++subcount << " vs others..." << std::endl;
+      if (++subcount % 100 == 0) {
+        std::cout << subcount << " cluster vs others completed..." << std::endl;
+      }
       for (it2 = clset.begin(); it2 != clset.end(); ++it2) if (it1->get()->id() != it2->get()->id()) {
         Cluster& c2 = *((*it2).get());
         double s = ip_->ComputeSimilarity(c1, c2);

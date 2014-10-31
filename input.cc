@@ -118,7 +118,8 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   
   sim_cache.insert(Similarity_t::value_type(std::make_pair(x1, x2), ret));
   
-  return abs(ret);
+//  std::cout << "sim = " << (ret > 0 ? ret : -ret) << std::endl;
+  return ret > 0 ? ret : -ret;
 }
 
 Input::Input(const char * INPUT_FILE)
@@ -195,6 +196,8 @@ Input::Input(const char * INPUT_FILE)
   //assert(maxid == idcount - 1 && idcount > 0);
   assert(minid == 0 && idcount > 0);
   
+  std::cout << "Edges (number of weights in hashtable) = " << w.size() << std::endl;
+  
   n_ = maxid + 1;
   // Go over hash table and obtain node neighbor,
   // miu and sigma
@@ -256,21 +259,22 @@ double Input::ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const
   
   // cls1 should not be equal to cls2
   if (cls1.GetIDs().size() == 0 || cls2.GetIDs().size() == 0) throw ("cluster cannot be size 0!");
-  boost::unordered_set<int>::iterator it1, it2;
   
   double sum = 0;
   if (cls1.GetIDs().size() == 1 && cls2.GetIDs().size() == 1) {
     // If both are singleton clusters, only compute similarity if they are nbs.
     const int id1 = *(cls1.GetIDs().begin());
     const int id2 = *(cls2.GetIDs().begin());
-    boost::unordered_set<int>::iterator it = ns[id1].nb.find(id1);
-    if (it == ns[id1].nb.end()) {
+    boost::unordered_set<int>::iterator it1 = ns[id1].nb.find(id1);
+    boost::unordered_set<int>::iterator it2 = ns[id2].nb.find(id1);
+    if (it1 == ns[id1].nb.end() && it2 == ns[id2].nb.end()) {
       return 0.0;
     }
     
-    return GetPearsonSimilarity(*it1, *it2);
+    return GetPearsonSimilarity(id1, id2);
   }
   
+  boost::unordered_set<int>::iterator it1, it2;
   for (it1 = cls1.GetIDs().begin(); it1 != cls1.GetIDs().end(); ++it1)
     for (it2 = cls2.GetIDs().begin(); it2 != cls2.GetIDs().end(); ++it2) {
       //sum += sim_[*it1][*it2];
