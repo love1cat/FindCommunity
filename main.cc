@@ -23,6 +23,7 @@ namespace {
 int main(int argc, char** argv)
 {
 //    Input::ProcessTopCommunities(TOP_COMMUNITY_FILE, EDGE_FILE, OUTFILE, CONV_TOP_CMTY_FILE);
+  //Input::inst(DEFAULT_INPUT)->test();
   FindCluster fc(Input::inst(DEFAULT_INPUT));
   clock_t start, end;
   start = clock();

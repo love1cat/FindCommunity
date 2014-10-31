@@ -85,7 +85,7 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   
   double sigma1 = ns[x1].sigma;
   double sigma2 = ns[x2].sigma;
-  if (sigma1 == 0 || sigma2 == 0) return std::numeric_limits<double>::min();
+  if (sigma1 == 0 || sigma2 == 0) return 0;
   
   double divid = sigma1 * sigma2 * n_;
   
@@ -366,4 +366,20 @@ void Input::ProcessTopCommunities(const char *TOP_COMMUNITY_FILE, const char *ED
     }
     outfile << "\n";
   }
+}
+
+void Input::test() {
+  std::ofstream testfile("test.txt");
+  long long count = 0;
+  for (int i = 0; i < n_; ++i) {
+    for (int j = 0; j < n_; ++j) {
+      if (i != j) {
+        double sim = GetPearsonSimilarity(i, j);
+        if (sim != 0 ) {
+          testfile << ++count << " " << sim << "\n";
+        }
+      }
+    } // for int j
+  }// for int i
+
 }
