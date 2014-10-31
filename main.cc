@@ -11,7 +11,7 @@
 #include "findcluster.h"
 
 namespace {
-  const int THRESHOLD = 13477;
+  const int THRESHOLD = 5000;
   const char *DEFAULT_INPUT = "nwdata.txt";
   
   const char *TOP_COMMUNITY_FILE = "com-dblp.top5000.cmty.txt";
