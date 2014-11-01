@@ -6,11 +6,11 @@
 namespace {
 
   const std::string CLUSTER_FILE = "clusters.txt";
-  const long long MEMORY_LIMIT = 1e9;
+  const long long MEMORY_LIMIT = 1000000000;
   
   typedef std::pair<int, int> Pair;
   typedef boost::unordered_map<Pair, double> ClusterSimilarity_t;
-  typedef boost::unordered_map<int, std::vector<int>> ClusterNonZeroSimPairs_t;
+  typedef boost::unordered_map<int, std::vector<int> > ClusterNonZeroSimPairs_t;
   
   ClusterSimilarity_t cls_sim;
   ClusterNonZeroSimPairs_t clssim_pr;
