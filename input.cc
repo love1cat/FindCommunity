@@ -49,13 +49,17 @@ namespace {
     return weight;
   }
   
+  // Similarity hash table instead of array to save memory
+  typedef boost::unordered_map<Pair, double> Similarity_t;
+  Similarity_t si;
+  
   // Caches
   unsigned long long SIM_CACHE_CAPACITY = 500000000;
   unsigned long long CLUSTER_SIM_CACHE_CAPACITY = 300000000;
   typedef boost::unordered_map<Pair, double> Similarity_t;
   Similarity_t sim_cache;
   
-  typedef std::pair<const Cluster*, int> ClusterInfo_t;
+  typedef std::pair<int, int> ClusterInfo_t; // (id, size)
   typedef std::pair<ClusterInfo_t, ClusterInfo_t> ClusterPair_t;
   typedef boost::unordered_map<ClusterPair_t, double> ClusterSimilarity_t;
   ClusterSimilarity_t cluster_sim_cache;
@@ -76,16 +80,32 @@ bool Input::IsIsolatedNode(int x1) const {
   return ns[x1].nb.empty();
 }
 
+double Input::GetPrecomputedSimilarity(int x1, int x2) const {
+  Similarity_t::const_iterator cit = si.find(std::make_pair(x1, x2));
+  if (cit != si.end()) {
+    return cit->second;
+  } else {
+    Similarity_t::const_iterator cit2 = si.find(std::make_pair(x2, x1));
+    if (cit2 != si.end()) {
+      return cit2->second;
+    }
+  }
+  return 0.0;
+}
+
 double Input::GetPearsonSimilarity(int x1, int x2) const
 {
   Similarity_t::const_iterator it = sim_cache.find(std::make_pair(x1, x2));
+  Similarity_t::const_iterator it2 = sim_cache.find(std::make_pair(x2, x1));
   if (it != sim_cache.end()) {
     return it->second;
+  } else if (it2 != sim_cache.end()) {
+    return it2->second;
   }
   
   double sigma1 = ns[x1].sigma;
   double sigma2 = ns[x2].sigma;
-  if (sigma1 == 0 || sigma2 == 0) return 0;
+  if (sigma1 == 0 || sigma2 == 0) return 0.0;
   
   double divid = sigma1 * sigma2 * n_;
   
@@ -97,10 +117,17 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   boost::unordered_set<int> nbset;
   nbset.insert(ns[x1].nb.begin(), ns[x1].nb.end());
   nbset.insert(ns[x2].nb.begin(), ns[x2].nb.end());
-  if (nbset.size() == ns[x1].nb.size() + ns[x2].nb.size()) {
-    // Not sharing any neighbor, return minimum value 0.0
-    return 0.0;
-  }
+//  if (nbset.size() == ns[x1].nb.size() + ns[x2].nb.size()) {
+//    // Not sharing any neighbor
+//    Weight_t::iterator it = w.find(Pair(x1, x2));
+//    if (it == w.end()) {
+//      it = w.find(Pair(x2, x1));
+//      if (it == w.end()) {
+//        // Not neighbor too, return minimum value 0.0
+//        return 0.0;
+//      }
+//    }
+//  }
   
   for (boost::unordered_set<int>::const_iterator it = nbset.begin(); it != nbset.end(); ++it) {
     int nb = *it;
@@ -118,8 +145,8 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   
   sim_cache.insert(Similarity_t::value_type(std::make_pair(x1, x2), ret));
   
-//  std::cout << "sim = " << (ret > 0 ? ret : -ret) << std::endl;
-  return ret > 0 ? ret : -ret;
+  //  std::cout << "sim = " << (ret > 0 ? ret : -ret) << std::endl;
+  return ret >= 0 ? ret : -ret;
 }
 
 Input::Input(const char * INPUT_FILE)
@@ -244,6 +271,22 @@ Input::Input(const char * INPUT_FILE)
     ns[i].sigma += miu / (double)n_ * miu * (n_ - ns[i].nb.size());
   }
   
+  
+  
+  // Pre-compute similarities
+  // Assuming similary matrix is sparse
+  std::cout << "Pre-computing similarities..." <<std::endl;
+  long long count = 0;
+  for (int i = 0; i < n_ - 1; ++i) {
+    for (int j = i + 1; j < n_; ++j) {
+      double sim = GetPearsonSimilarity(i, j);
+      if(sim != 0) {
+        std::cout << "Find a non-zero similarity. Count = " << ++count << std::endl;
+        si.insert(Similarity_t::value_type(Pair(i, j), sim));
+      }
+    }// for int j
+  }// for int i
+  
   std::cout << "Done processing input..." <<std::endl;
 }
 
@@ -266,25 +309,29 @@ namespace {
 
 double Input::ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const
 {
-  ClusterPair_t cls_pr(ClusterInfo_t(&cls1, cls1.GetSize()), ClusterInfo_t(&cls2, cls2.GetSize()));
-  ClusterSimilarity_t::const_iterator it = cluster_sim_cache.find(cls_pr);
-  if (it != cluster_sim_cache.end()) {
-    return it->second;
+  ClusterPair_t cls_pr(ClusterInfo_t(cls1.id(), cls1.GetSize()), ClusterInfo_t(cls2.id(), cls2.GetSize()));
+  ClusterSimilarity_t::const_iterator cit = cluster_sim_cache.find(cls_pr);
+  ClusterPair_t cls_pr2(ClusterInfo_t(cls2.id(), cls2.GetSize()), ClusterInfo_t(cls1.id(), cls1.GetSize()));
+  ClusterSimilarity_t::const_iterator cit2 = cluster_sim_cache.find(cls_pr2);
+  if (cit != cluster_sim_cache.end()) {
+    return cit->second;
+  } else if (cit2 != cluster_sim_cache.end()) {
+    return cit2->second;
   }
   
   // cls1 should not be equal to cls2
   if (cls1.GetIDs().size() == 0 || cls2.GetIDs().size() == 0) throw ("cluster cannot be size 0!");
   
-  if (!is_connected(cls1, cls2)) {
-    return 0.0;
-  }
+//  if (!is_connected(cls1, cls2)) {
+//    return 0.0;
+//  }
   
   double sum = 0.0;
   boost::unordered_set<int>::iterator it1, it2;
   for (it1 = cls1.GetIDs().begin(); it1 != cls1.GetIDs().end(); ++it1) {
     for (it2 = cls2.GetIDs().begin(); it2 != cls2.GetIDs().end(); ++it2) {
       //sum += sim_[*it1][*it2];
-      sum += GetPearsonSimilarity(*it1, *it2);
+      sum += GetPrecomputedSimilarity(*it1, *it2);
     }
   }
   
@@ -381,5 +428,5 @@ void Input::test() {
       }
     } // for int j
   }// for int i
-
+  
 }

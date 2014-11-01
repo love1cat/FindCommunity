@@ -35,6 +35,8 @@ private:
 
   int n_; // node number
   
+  double GetPrecomputedSimilarity(int x1, int x2) const;
+  
 //  double GetPearsonSimilarity(int x1, int x2, const double * const * weight, const double* sigma, const double* miu);
   double GetPearsonSimilarity(int x1, int x2) const;
 };

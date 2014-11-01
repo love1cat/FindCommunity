@@ -22,9 +22,10 @@ public:
   void Print() const;
   void WriteToFile(FILE *fp) const;
   inline void Insert(int x) {ids_.insert(x);}
-  inline int GetSize() const{return ids_.size();}
+  inline int GetSize() const {return ids_.size();}
   inline const boost::unordered_set<int>& GetIDs() const{return ids_;}
-  inline int id() {return id_;}
+  inline int id() const {return id_;}
+  inline void set_id(int id) {id_ = id;}
 private:
   int id_;
   static int id_count;
