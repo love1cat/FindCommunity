@@ -117,17 +117,20 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   boost::unordered_set<int> nbset;
   nbset.insert(ns[x1].nb.begin(), ns[x1].nb.end());
   nbset.insert(ns[x2].nb.begin(), ns[x2].nb.end());
-//  if (nbset.size() == ns[x1].nb.size() + ns[x2].nb.size()) {
-//    // Not sharing any neighbor
-//    Weight_t::iterator it = w.find(Pair(x1, x2));
-//    if (it == w.end()) {
-//      it = w.find(Pair(x2, x1));
-//      if (it == w.end()) {
-//        // Not neighbor too, return minimum value 0.0
-//        return 0.0;
-//      }
-//    }
-//  }
+
+  // Reduce number of non-zero similarities.
+  // Comment this part out if memory is large enough.
+  if (nbset.size() == ns[x1].nb.size() + ns[x2].nb.size()) {
+    // Not sharing any neighbor
+    Weight_t::iterator it = w.find(Pair(x1, x2));
+    if (it == w.end()) {
+      it = w.find(Pair(x2, x1));
+      if (it == w.end()) {
+        // Not neighbor too, return minimum value 0.0
+        return 0.0;
+      }
+    }
+  }
   
   for (boost::unordered_set<int>::const_iterator it = nbset.begin(); it != nbset.end(); ++it) {
     int nb = *it;
