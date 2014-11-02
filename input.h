@@ -10,6 +10,8 @@
 
 #include <string>
 
+const long long MEMORY_LIMIT = 1000000000;
+
 class Cluster;
 
 class Input {

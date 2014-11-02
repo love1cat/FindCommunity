@@ -6,11 +6,10 @@
 namespace {
 
   const std::string CLUSTER_FILE = "clusters.txt";
-  const long long MEMORY_LIMIT = 1000000000;
   
   typedef std::pair<int, int> Pair;
   typedef boost::unordered_map<Pair, double> ClusterSimilarity_t;
-  typedef boost::unordered_map<int, std::vector<int> > ClusterNonZeroSimPairs_t;
+  typedef boost::unordered_map<int, boost::unordered_set<int> > ClusterNonZeroSimPairs_t;
   
   ClusterSimilarity_t cls_sim;
   ClusterNonZeroSimPairs_t clssim_pr;
@@ -18,23 +17,27 @@ namespace {
   void AddSimilarityPair(int id1, int id2) {
     ClusterNonZeroSimPairs_t::iterator it = clssim_pr.find(id1);
     if (it == clssim_pr.end()) {
-      std::vector<int> prvec1;
-      prvec1.push_back(id2);
-      clssim_pr.insert(ClusterNonZeroSimPairs_t::value_type(id1, prvec1));
+      boost::unordered_set<int> prset1;
+      prset1.insert(id2);
+      clssim_pr.insert(ClusterNonZeroSimPairs_t::value_type(id1, prset1));
       return;
     }
     
-    it->second.push_back(id2);
+    it->second.insert(id2);
   }
   
   void RemoveSimilarities(int id) {
     // Remove id related sim entry from hash table.
     ClusterNonZeroSimPairs_t::iterator it = clssim_pr.find(id);
     if (it != clssim_pr.end()) {
-      std::vector<int> &v = it->second;
-      for (int i = 0; i < v.size(); ++i) {
-        cls_sim.erase(Pair(id, v[i]));
-        cls_sim.erase(Pair(v[i], id));
+      boost::unordered_set<int> &ps = it->second;
+      for (boost::unordered_set<int>::iterator sit = ps.begin(); sit != ps.end(); ++sit) {
+        int id2 = *sit;
+        cls_sim.erase(Pair(id, id2));
+        cls_sim.erase(Pair(id2, id));
+        
+        ClusterNonZeroSimPairs_t::iterator it2 = clssim_pr.find(id2);
+        it2->second.erase(id);
       }
       clssim_pr.erase(id);
     }
@@ -46,12 +49,17 @@ namespace {
     for (FindCluster::ClusterMap_t::iterator it2 = clmap.begin(); it2 != clmap.end(); ++it2) {
       int id2 = it2->first;
       if (id == id2) continue;
+      ClusterSimilarity_t::iterator sim_it = cls_sim.find(Pair(id2, id));
+      if (sim_it != cls_sim.end()) {
+        continue;
+      }
       const Cluster &c1 = *(it1->second.get());
       const Cluster &c2 = *(it2->second.get());
       double sim = ip->ComputeSimilarity(c1, c2);
       if (sim != 0) {
         cls_sim.insert(ClusterSimilarity_t::value_type(Pair(id, id2), sim));
         if (cls_sim.size() > MEMORY_LIMIT) {
+          std::cout << "Too many similarities found. The size of the hash table exceeds the predefined limit." << std::endl;
           return false;
         }
         
@@ -94,10 +102,13 @@ void FindCluster::run(const int THRESHOLD) const {
   for (it1 = clmap.begin(); it1 != clmap.end(); ++it1) {
     int id1 = it1->first;
     if(!AddSimilarity(id1, clmap, ip_)) {
+      std::cout << "Memory limit reached. Go print existing clusters." << std::endl;
       PrintClusters(clmap);
       break;
     }
   }
+  
+  std::cout << "The cluster similarity hash table contains " << cls_sim.size() << " entries." << std::endl;
   
   // Begin aggregating clusters
   std::cout << "Threadhold = " << THRESHOLD << std::endl;
@@ -136,8 +147,11 @@ void FindCluster::run(const int THRESHOLD) const {
     
     std::cout << "Adding new similarities from new cluster..." << std::endl;
     if(!AddSimilarity(id1, clmap, ip_)) {
+      std::cout << "Memory limit reached. Go print existing clusters." << std::endl;
       break;
     }
+    
+    std::cout << "The cluster similarity hash table is updated to " << cls_sim.size() << " entries." << std::endl;
   }
   
   // print clusters
