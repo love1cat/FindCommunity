@@ -277,14 +277,17 @@ Input::Input(const char * INPUT_FILE)
   // Assuming similary matrix is sparse
   std::cout << "Pre-computing similarities..." <<std::endl;
   long long count = 0;
+  long long raw_count = 0;
   for (int i = 0; i < n_ - 1; ++i) {
     for (int j = i + 1; j < n_; ++j) {
+      ++raw_count;
       double sim = GetPearsonSimilarity(i, j);
       if(sim != 0) {
         ++count;
-        if (count % 1000 == 0) {
+        if (count % 2000 == 0) {
           // Decrease output frequency.
           std::cout << "Found 1000 non-zero similarities. Count = " << count << std::endl;
+          std::cout << "Checked " << raw_count << " pairs." << std::endl;
         }
         si.insert(Similarity_t::value_type(Pair(i, j), sim));
         if (si.size() > MEMORY_LIMIT) {
