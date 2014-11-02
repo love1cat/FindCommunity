@@ -289,7 +289,7 @@ Input::Input(const char * INPUT_FILE)
         ++count;
         if (count % 2000 == 0) {
           // Decrease output frequency.
-          std::cout << "Found 1000 non-zero similarities. Count = " << count << std::endl;
+          std::cout << "Found 2000 non-zero similarities. Count = " << count << std::endl;
           std::cout << "Checked " << raw_count << " pairs." << std::endl;
         }
         si.insert(Similarity_t::value_type(Pair(i, j), sim));
