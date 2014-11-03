@@ -40,15 +40,6 @@ namespace {
   typedef boost::unordered_map<Pair, int> Weight_t;
   Weight_t w;
   
-  double get_weight(int x1, int x2) {
-    double weight = 0.0;
-    Weight_t::const_iterator cit = w.find(std::make_pair(x1, x2));
-    if (cit != w.end()) {
-      weight = cit->second;
-    }
-    return weight;
-  }
-  
   // Similarity hash table instead of array to save memory
   typedef boost::unordered_map<Pair, double> Similarity_t;
   Similarity_t si;
@@ -67,6 +58,7 @@ namespace {
 }
 
 Input* Input::inp_ptr_ = NULL;
+bool Input::is_directed_ = true;
 
 Input* Input::inst(const char * INPUT_FILE)
 {
@@ -78,6 +70,20 @@ Input* Input::inst(const char * INPUT_FILE)
 
 bool Input::IsIsolatedNode(int x1) const {
   return ns[x1].nb.empty();
+}
+
+double Input::GetWeight(int x1, int x2) const{
+  double weight = 0.0;
+  Weight_t::const_iterator cit = w.find(std::make_pair(x1, x2));
+  if (cit != w.end()) {
+    weight = cit->second;
+  } else if (!is_directed_) {
+    cit = w.find(std::make_pair(x2, x1));
+    if (cit != w.end()) {
+      weight = cit->second;
+    }
+  }
+  return weight;
 }
 
 double Input::GetPrecomputedSimilarity(int x1, int x2) const {
@@ -134,8 +140,8 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   
   for (boost::unordered_set<int>::const_iterator it = nbset.begin(); it != nbset.end(); ++it) {
     int nb = *it;
-    double weight1 = get_weight(x1, nb);
-    double weight2 = get_weight(x2, nb);
+    double weight1 = GetWeight(x1, nb);
+    double weight2 = GetWeight(x2, nb);
     ret += (weight1 - miu1) * (weight2 - miu2) / divid;
   }
   
@@ -251,6 +257,11 @@ Input::Input(const char * INPUT_FILE)
     // IDs must be 0-indexed
     ns[id1].miu += (double)weight / (double)n_;
     ns[id1].nb.insert(id2);
+    
+    if (!is_directed_) {
+      ns[id2].miu += (double)weight / (double)n_;
+      ns[id2].nb.insert(id1);
+    }
   }
   
   // Compute sigmas
@@ -263,6 +274,12 @@ Input::Input(const char * INPUT_FILE)
     // IDs must be 0-indexed
     double miu = ns[id1].miu;
     ns[id1].sigma += (double)(weight - miu) / (double)n_ * (double)(weight - miu);
+    
+    if (!is_directed_) {
+      int id2 = p.second;
+      miu = ns[id2].miu;
+      ns[id2].sigma += (double)(weight - miu) / (double)n_ * (double)(weight - miu);
+    }
   }
   
   // Second step, compute partial value from all non-neighbors
