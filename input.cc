@@ -58,12 +58,12 @@ namespace {
 }
 
 Input* Input::inp_ptr_ = NULL;
-bool Input::is_directed_ = true;
+std::vector<InputFile> Input::input_files_;
 
-Input* Input::inst(const char * INPUT_FILE)
+Input* Input::inst()
 {
   if (!inp_ptr_) {
-    inp_ptr_ = new Input(INPUT_FILE);
+    inp_ptr_ = new Input();
   }
   return inp_ptr_;
 }
@@ -77,12 +77,8 @@ double Input::GetWeight(int x1, int x2) const{
   Weight_t::const_iterator cit = w.find(std::make_pair(x1, x2));
   if (cit != w.end()) {
     weight = cit->second;
-  } else if (!is_directed_) {
-    cit = w.find(std::make_pair(x2, x1));
-    if (cit != w.end()) {
-      weight = cit->second;
-    }
   }
+
   return weight;
 }
 
@@ -123,7 +119,7 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   boost::unordered_set<int> nbset;
   nbset.insert(ns[x1].nb.begin(), ns[x1].nb.end());
   nbset.insert(ns[x2].nb.begin(), ns[x2].nb.end());
-
+  
   // Reduce number of non-zero similarities.
   // Comment this part out if memory is large enough.
   if (nbset.size() == ns[x1].nb.size() + ns[x2].nb.size()) {
@@ -158,11 +154,22 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   return ret >= 0 ? ret : -ret;
 }
 
-Input::Input(const char * INPUT_FILE)
+void Input::AddWeightPair(int x1, int x2) {
+  std::pair < Weight_t::iterator, bool> pr =
+  w.insert(Weight_t::value_type(std::make_pair(x1, x2), 1));
+  if (!(pr.second)) {
+    // Already in the hash table
+    // Increase the count
+    Weight_t::iterator &wit = pr.first;
+    ++(wit->second);
+  }
+}
+
+Input::Input()
 {
-  std::ifstream infile(INPUT_FILE);
-  if (!infile) {
-    throw "Cannot open input file.";
+  assert(!input_files_.empty() && "no input files.");
+  if (input_files_.empty()) {
+    throw "No input files.";
   }
   
   // ID hash table for ID check
@@ -172,56 +179,60 @@ Input::Input(const char * INPUT_FILE)
   unsigned int maxid = 0;
   unsigned int minid = std::numeric_limits<unsigned int>::max();
   
-  std::string line;
-  while (std::getline(infile, line)) {
-    if (is_comment(line.c_str())) {
-      continue;
-    }
-    std::istringstream ssline(line);
-    int id1, id2;
-    ssline >> id1 >> id2;
-    
-    assert(id1 >= 0 && id2 >= 0);
-    
-    if (id1 == id2) {
-      continue;
+  for (int i = 0; i < input_files_.size(); ++i) {
+    std::cout << "Reading input file " << i + 1 << ": " << input_files_[i].filename << std::endl;
+    std::ifstream infile(input_files_[i].filename);
+    if (!infile) {
+      throw "Cannot open input file.";
     }
     
-    std::pair < Weight_t::iterator, bool> pr =
-    w.insert(Weight_t::value_type(std::make_pair(id1, id2), 1));
-    if (!(pr.second)) {
-      // Already in the hash table
-      // Increase the count
-      Weight_t::iterator &wit = pr.first;
-      ++(wit->second);
-    }
-    
-    // ID check
-    std::pair < ID_t::iterator, bool> pr2 =
-    ids.insert(ID_t::value_type(id1));
-    if (pr2.second) {
-      ++idcount;
-    }
-    
-    pr2 = ids.insert(ID_t::value_type(id2));
-    if (pr2.second) {
-      ++idcount;
-    }
-    
-    if (id1 > maxid) {
-      maxid = id1;
-    }
-    
-    if (id1 < minid) {
-      minid = id1;
-    }
-    
-    if (id2 > maxid) {
-      maxid = id2;
-    }
-    
-    if (id2 < minid) {
-      minid = id2;
+    std::string line;
+    while (std::getline(infile, line)) {
+      if (is_comment(line.c_str())) {
+        continue;
+      }
+      std::istringstream ssline(line);
+      int id1, id2;
+      ssline >> id1 >> id2;
+      
+      assert(id1 >= 0 && id2 >= 0);
+      
+      if (id1 == id2) {
+        continue;
+      }
+      
+      AddWeightPair(id1, id2);
+      if (!input_files_[i].is_directed) {
+        AddWeightPair(id2, id1);
+      }
+      
+      // ID check
+      std::pair < ID_t::iterator, bool> pr2 =
+      ids.insert(ID_t::value_type(id1));
+      if (pr2.second) {
+        ++idcount;
+      }
+      
+      pr2 = ids.insert(ID_t::value_type(id2));
+      if (pr2.second) {
+        ++idcount;
+      }
+      
+      if (id1 > maxid) {
+        maxid = id1;
+      }
+      
+      if (id1 < minid) {
+        minid = id1;
+      }
+      
+      if (id2 > maxid) {
+        maxid = id2;
+      }
+      
+      if (id2 < minid) {
+        minid = id2;
+      }
     }
   }
   
@@ -257,11 +268,6 @@ Input::Input(const char * INPUT_FILE)
     // IDs must be 0-indexed
     ns[id1].miu += (double)weight / (double)n_;
     ns[id1].nb.insert(id2);
-    
-    if (!is_directed_) {
-      ns[id2].miu += (double)weight / (double)n_;
-      ns[id2].nb.insert(id1);
-    }
   }
   
   // Compute sigmas
@@ -274,12 +280,6 @@ Input::Input(const char * INPUT_FILE)
     // IDs must be 0-indexed
     double miu = ns[id1].miu;
     ns[id1].sigma += (double)(weight - miu) / (double)n_ * (double)(weight - miu);
-    
-    if (!is_directed_) {
-      int id2 = p.second;
-      miu = ns[id2].miu;
-      ns[id2].sigma += (double)(weight - miu) / (double)n_ * (double)(weight - miu);
-    }
   }
   
   // Second step, compute partial value from all non-neighbors
@@ -290,8 +290,6 @@ Input::Input(const char * INPUT_FILE)
     if (miu == 0.0) continue;
     ns[i].sigma += miu / (double)n_ * miu * (n_ - ns[i].nb.size());
   }
-  
-  
   
   // Pre-compute similarities
   // Assuming similary matrix is sparse
@@ -353,9 +351,9 @@ double Input::ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const
   // cls1 should not be equal to cls2
   if (cls1.GetIDs().size() == 0 || cls2.GetIDs().size() == 0) throw ("cluster cannot be size 0!");
   
-//  if (!is_connected(cls1, cls2)) {
-//    return 0.0;
-//  }
+  //  if (!is_connected(cls1, cls2)) {
+  //    return 0.0;
+  //  }
   
   double sum = 0.0;
   boost::unordered_set<int>::iterator it1, it2;

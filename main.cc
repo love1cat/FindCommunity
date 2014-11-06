@@ -11,7 +11,7 @@
 #include "findcluster.h"
 
 namespace {
-  const int THRESHOLD = 5000;
+  const int THRESHOLD = 3;
   const char *DEFAULT_INPUT = "nwdata.txt";
   
   const char *TOP_COMMUNITY_FILE = "com-dblp.top5000.cmty.txt";
@@ -24,7 +24,14 @@ int main(int argc, char** argv)
 {
 //    Input::ProcessTopCommunities(TOP_COMMUNITY_FILE, EDGE_FILE, OUTFILE, CONV_TOP_CMTY_FILE);
   //Input::inst(DEFAULT_INPUT)->test();
-  FindCluster fc(Input::inst(DEFAULT_INPUT));
+  std::vector<InputFile> infiles;
+  InputFile infile(DEFAULT_INPUT, true);
+  infiles.push_back(infile);
+  InputFile infile2(OUTFILE, false);
+  infiles.push_back(infile2);
+  
+  Input::SetInputFiles(infiles);
+  FindCluster fc(Input::inst());
   clock_t start, end;
   start = clock();
   fc.run(THRESHOLD);
