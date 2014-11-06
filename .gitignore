@@ -2,7 +2,8 @@
 *.o.d
 *.swp
 
-build/*
+build*/*
+input/*
 
 Xcode/DerivedData/*
 

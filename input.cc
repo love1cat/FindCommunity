@@ -181,7 +181,7 @@ Input::Input()
   
   for (int i = 0; i < input_files_.size(); ++i) {
     std::cout << "Reading input file " << i + 1 << ": " << input_files_[i].filename << std::endl;
-    std::ifstream infile(input_files_[i].filename);
+    std::ifstream infile(input_files_[i].filename.c_str());
     if (!infile) {
       throw "Cannot open input file.";
     }

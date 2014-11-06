@@ -11,12 +11,12 @@
 #include "findcluster.h"
 
 namespace {
-  const int THRESHOLD = 3;
-  const char *DEFAULT_INPUT = "nwdata.txt";
+  const int THRESHOLD = 5000;
+  const char *DEFAULT_INPUT = "../input/nwdata.txt";
   
   const char *TOP_COMMUNITY_FILE = "com-dblp.top5000.cmty.txt";
   const char *EDGE_FILE = "com-dblp.ungraph.txt";
-  const char *OUTFILE = "topcmty.ungraph.txt";
+  const char *OUTFILE = "../input/topcmty.ungraph.txt";
   const char *CONV_TOP_CMTY_FILE = "conv.top5000.cmty.txt";
 }
 
