@@ -111,12 +111,11 @@ void FindCluster::run(const int THRESHOLD) const {
       if (sim_it != cls_sim.end()) {
         continue;
       }
-      const Cluster &c1 = *(it1->second.get());
-      const Cluster &c2 = *(it2->second.get());
+      
       /************** HACK *****************/
       // Precompute all pearson similarity here, not in input.cc
       // we then just need to compute all similarities once instead of twice
-      double sim = ip_->GetPearsonSimilarity(c1.id(), c2.id());
+      double sim = ip_->GetPearsonSimilarity(id1, id2);
       if (sim != 0) {
         ++scount;
         if (scount % 2000 == 0) {
