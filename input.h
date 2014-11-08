@@ -39,6 +39,10 @@ public:
   static void ProcessTopCommunities(const char *TOP_COMMUNITY_FILE, const char *EDGE_FILE, const char *OUTFILE, const char *CONV_TOP_CMTY_FILE);
 	//inline double GetSimilarity(int i, int j){return sim_[i][j];} // for simplicity, not check invalid index
   void test();
+  
+  double GetPearsonSimilarity(int x1, int x2) const;
+  
+  unsigned long GetSimilaritySize() const;
 private:
   Input();
   Input operator=(const Input&);
@@ -56,7 +60,6 @@ private:
   double GetPrecomputedSimilarity(int x1, int x2) const;
   
 //  double GetPearsonSimilarity(int x1, int x2, const double * const * weight, const double* sigma, const double* miu);
-  double GetPearsonSimilarity(int x1, int x2) const;
   
 };
 

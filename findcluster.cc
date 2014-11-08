@@ -4,7 +4,7 @@
 #include "findcluster.h"
 
 namespace {
-
+  
   const std::string CLUSTER_FILE = "clusters.txt";
   
   typedef std::pair<int, int> Pair;
@@ -87,7 +87,7 @@ void FindCluster::PrintClusters(const ClusterMap_t &clmap) const {
 void FindCluster::run(const int THRESHOLD) const {
   std::cout << "Starting finding community..." << std::endl;
   int n = ip_->GetNodeCount();
-
+  
   ClusterMap_t clmap;
   for (int i = 0; i < n; ++i) {
     ClusterPtr cp(new Cluster());
@@ -99,15 +99,51 @@ void FindCluster::run(const int THRESHOLD) const {
   // Initialize similarity
   std::cout << "Initializing cluster similarities... " << std::endl;
   ClusterMap_t::iterator it1, it2;
+  bool memory_limit_reached = false;
+  
+  long long scount = 0;
+  long long raw_scount = 0;
   for (it1 = clmap.begin(); it1 != clmap.end(); ++it1) {
+    if (memory_limit_reached) break;
     int id1 = it1->first;
-    if(!AddSimilarity(id1, clmap, ip_)) {
-      std::cout << "Memory limit reached. Go print existing clusters." << std::endl;
-      PrintClusters(clmap);
-      break;
+    for (FindCluster::ClusterMap_t::iterator it2 = clmap.begin(); it2 != clmap.end(); ++it2) {
+      ++raw_scount;
+      int id2 = it2->first;
+      if (id1 == id2) continue;
+      ClusterSimilarity_t::iterator sim_it = cls_sim.find(Pair(id2, id1));
+      if (sim_it != cls_sim.end()) {
+        continue;
+      }
+      const Cluster &c1 = *(it1->second.get());
+      const Cluster &c2 = *(it2->second.get());
+      /************** HACK *****************/
+      // Precompute all pearson similarity here, not in input.cc
+      // we then just need to compute all similarities once instead of twice
+      double sim = ip_->GetPearsonSimilarity(c1.id(), c2.id());
+      if (sim != 0) {
+        ++scount;
+        if (scount % 2000 == 0) {
+          // Decrease output frequency.
+          std::cout << "Found 2000 non-zero similarities. Count = " << scount << std::endl;
+          std::cout << "Checked " << raw_scount << " pairs." << std::endl;
+        }
+        cls_sim.insert(ClusterSimilarity_t::value_type(Pair(id1, id2), sim));
+        if (cls_sim.size() > MEMORY_LIMIT) {
+          std::cout << "Too many similarities found. The size of the hash table exceeds the predefined limit." << std::endl;
+          PrintClusters(clmap);
+          memory_limit_reached = true;
+          break;
+        }
+        
+        AddSimilarityPair(id1, id2);
+        AddSimilarityPair(id2, id1);
+      }
     }
   }
-  
+  std::cout << "----------------------------------------------------------------" << std::endl;
+  std::cout << "All similarities pre-computed as cluster are singltons initially." << std::endl;
+  std::cout << "The similarity hash table contains " << ip_->GetSimilaritySize() << " entries." << std::endl;
+  std::cout << "----------------------------------------------------------------" << std::endl;
   std::cout << "The cluster similarity hash table contains " << cls_sim.size() << " entries." << std::endl;
   
   // Begin aggregating clusters

@@ -68,6 +68,10 @@ Input* Input::inst()
   return inp_ptr_;
 }
 
+unsigned long Input::GetSimilaritySize() const {
+  return w.size();
+}
+
 bool Input::IsIsolatedNode(int x1) const {
   return ns[x1].nb.empty();
 }
@@ -151,7 +155,14 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   sim_cache.insert(Similarity_t::value_type(std::make_pair(x1, x2), ret));
   
   //  std::cout << "sim = " << (ret > 0 ? ret : -ret) << std::endl;
-  return ret >= 0 ? ret : -ret;
+  if (ret < 0) ret = -ret;
+  
+  // Update similarity hash table
+  if (ret != 0) {
+    si.insert(Similarity_t::value_type(Pair(x1, x2), ret));
+  }
+  
+  return ret;
 }
 
 void Input::AddWeightPair(int x1, int x2, int multiple) {
@@ -293,48 +304,48 @@ Input::Input()
   
   // Pre-compute similarities
   // Assuming similary matrix is sparse
-  std::cout << "Pre-computing similarities..." <<std::endl;
-  long long count = 0;
-  long long raw_count = 0;
-  for (int i = 0; i < n_ - 1; ++i) {
-    for (int j = i + 1; j < n_; ++j) {
-      ++raw_count;
-      double sim = GetPearsonSimilarity(i, j);
-      if(sim != 0) {
-        ++count;
-        if (count % 2000 == 0) {
-          // Decrease output frequency.
-          std::cout << "Found 2000 non-zero similarities. Count = " << count << std::endl;
-          std::cout << "Checked " << raw_count << " pairs." << std::endl;
-        }
-        si.insert(Similarity_t::value_type(Pair(i, j), sim));
-        if (si.size() > MEMORY_LIMIT) {
-          throw "Too many similarities found. The size of the hash table exceeds the predefined limit.";
-        }
-      }
-    }// for int j
-  }// for int i
+//  std::cout << "Pre-computing similarities..." <<std::endl;
+//  long long count = 0;
+//  long long raw_count = 0;
+//  for (int i = 0; i < n_ - 1; ++i) {
+//    for (int j = i + 1; j < n_; ++j) {
+//      ++raw_count;
+//      double sim = GetPearsonSimilarity(i, j);
+//      if(sim != 0) {
+//        ++count;
+//        if (count % 2000 == 0) {
+//          // Decrease output frequency.
+//          std::cout << "Found 2000 non-zero similarities. Count = " << count << std::endl;
+//          std::cout << "Checked " << raw_count << " pairs." << std::endl;
+//        }
+//        si.insert(Similarity_t::value_type(Pair(i, j), sim));
+//        if (si.size() > MEMORY_LIMIT) {
+//          throw "Too many similarities found. The size of the hash table exceeds the predefined limit.";
+//        }
+//      }
+//    }// for int j
+//  }// for int i
   
   std::cout << "The similarity hash table contains " << si.size() << " entries." << std::endl;
   std::cout << "Done processing input..." <<std::endl;
 }
 
-namespace {
-  bool is_connected(const Cluster& cls1, const Cluster& cls2) {
-    boost::unordered_set<int>::iterator it1, it2;
-    for (it1 = cls1.GetIDs().begin(); it1 != cls1.GetIDs().end(); ++it1) {
-      for (it2 = cls2.GetIDs().begin(); it2 != cls2.GetIDs().end(); ++it2) {
-        Weight_t::const_iterator wit = w.find(Weight_t::key_type(*it1, *it2));
-        Weight_t::const_iterator wit2 = w.find(Weight_t::key_type(*it2, *it1));
-        if (wit != w.end() || wit2 != w.end()) {
-          return true;
-        }
-      }
-    }
-    
-    return false;
-  }
-}
+//namespace {
+//  bool is_connected(const Cluster& cls1, const Cluster& cls2) {
+//    boost::unordered_set<int>::iterator it1, it2;
+//    for (it1 = cls1.GetIDs().begin(); it1 != cls1.GetIDs().end(); ++it1) {
+//      for (it2 = cls2.GetIDs().begin(); it2 != cls2.GetIDs().end(); ++it2) {
+//        Weight_t::const_iterator wit = w.find(Weight_t::key_type(*it1, *it2));
+//        Weight_t::const_iterator wit2 = w.find(Weight_t::key_type(*it2, *it1));
+//        if (wit != w.end() || wit2 != w.end()) {
+//          return true;
+//        }
+//      }
+//    }
+//    
+//    return false;
+//  }
+//}
 
 double Input::ComputeSimilarity(const Cluster& cls1, const Cluster& cls2) const
 {
