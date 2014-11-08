@@ -103,13 +103,10 @@ void FindCluster::run(const int THRESHOLD) const {
   
   long long scount = 0;
   long long raw_scount = 0;
-  for (it1 = clmap.begin(); it1 != clmap.end(); ++it1) {
+  for (int id1 = 0; id1 < n - 1; ++id1) {
     if (memory_limit_reached) break;
-    int id1 = it1->first;
-    for (FindCluster::ClusterMap_t::iterator it2 = clmap.begin(); it2 != clmap.end(); ++it2) {
+    for (int id2 = id1 + 1; id2 < n; ++id2) {
       ++raw_scount;
-      int id2 = it2->first;
-      if (id1 == id2) continue;
       ClusterSimilarity_t::iterator sim_it = cls_sim.find(Pair(id2, id1));
       if (sim_it != cls_sim.end()) {
         continue;
