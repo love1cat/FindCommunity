@@ -25,9 +25,9 @@ int main(int argc, char** argv)
 //    Input::ProcessTopCommunities(TOP_COMMUNITY_FILE, EDGE_FILE, OUTFILE, CONV_TOP_CMTY_FILE);
   //Input::inst(DEFAULT_INPUT)->test();
   std::vector<InputFile> infiles;
-  InputFile infile(DEFAULT_INPUT, true);
+  InputFile infile(DEFAULT_INPUT, true, 1);
   infiles.push_back(infile);
-  InputFile infile2(OUTFILE, false);
+  InputFile infile2(OUTFILE, false, 4);
   infiles.push_back(infile2);
   
   Input::SetInputFiles(infiles);

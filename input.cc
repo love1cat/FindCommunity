@@ -154,14 +154,14 @@ double Input::GetPearsonSimilarity(int x1, int x2) const
   return ret >= 0 ? ret : -ret;
 }
 
-void Input::AddWeightPair(int x1, int x2) {
+void Input::AddWeightPair(int x1, int x2, int multiple) {
   std::pair < Weight_t::iterator, bool> pr =
-  w.insert(Weight_t::value_type(std::make_pair(x1, x2), 1));
+  w.insert(Weight_t::value_type(std::make_pair(x1, x2), multiple));
   if (!(pr.second)) {
     // Already in the hash table
     // Increase the count
     Weight_t::iterator &wit = pr.first;
-    ++(wit->second);
+    wit->second += multiple;
   }
 }
 
@@ -201,9 +201,9 @@ Input::Input()
         continue;
       }
       
-      AddWeightPair(id1, id2);
+      AddWeightPair(id1, id2, input_files_[i].weight_multiple);
       if (!input_files_[i].is_directed) {
-        AddWeightPair(id2, id1);
+        AddWeightPair(id2, id1, input_files_[i].weight_multiple);
       }
       
       // ID check

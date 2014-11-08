@@ -18,8 +18,9 @@ class Cluster;
 struct InputFile {
   std::string filename;
   bool is_directed;
-  InputFile(const std::string &filenameval, bool is_directedval)
-  : filename(filenameval), is_directed(is_directedval) {}
+  int weight_multiple; // how much weight add to weight store. used to adjust weight in multiple file case.
+  InputFile(const std::string &filenameval, bool is_directedval, int weight_multipleval = 1)
+  : filename(filenameval), is_directed(is_directedval), weight_multiple(weight_multipleval) {}
 };
 
 class Input {
@@ -50,7 +51,7 @@ private:
   int n_; // node number
   
   double GetWeight(int x1, int x2) const;
-  void AddWeightPair(int x1, int x2);
+  void AddWeightPair(int x1, int x2, int multiple = 1);
   
   double GetPrecomputedSimilarity(int x1, int x2) const;
   
